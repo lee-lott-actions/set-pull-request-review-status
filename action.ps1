@@ -1,28 +1,60 @@
-#!/usr/bin/env pwsh
+function Set-Pull-Request-Review-Status {
+  param(
+    [string]$RepoName,
+    [string]$OrgName,
+    [string]$PrNumber,
+    [ValidateSet("APPROVE", "REQUEST_CHANGES", "COMMENT")]
+    [string]$PrStatus,
+    [string]$PrMessage,
+    [string]$Token
+  )
 
-function open_issue {
-    param (
-        [string]$Input1,
-        [string]$Input2,
-        [string]$Input3
-    )
+  # Validate required inputs (except PrStatus, which is ValidateSet)
+  if ([string]::IsNullOrEmpty($RepoName) -or 
+      [string]::IsNullOrEmpty($OrgName) -or 
+      [string]::IsNullOrEmpty($PrNumber) -or
+      [string]::IsNullOrEmpty($PrStatus) -or
+      [string]::IsNullOrEmpty($PrMessage) -or
+      [string]::IsNullOrEmpty($Token)) 
+  {
+    Write-Output "Error: Missing required parameters"  
+    Add-Content -Path $env:GITHUB_OUTPUT -Value "error-message=Missing required parameters: RepoName, OrgName, PrNumber, PrStatus, PrMessage, and Token must be provided."
+    Add-Content -Path $env:GITHUB_OUTPUT -Value "result=failure"
+    return
+  }
+  
+  $githubApiUrl = $env:MOCK_API
+  if (-not $githubApiUrl) { $githubApiUrl = "https://api.github.com" }
+  
+  $uri = "$githubApiUrl/repos/$OrgName/$RepoName/pulls/$PrNumber/reviews"
 
-    # Validate required inputs
-    if (
-        [string]::IsNullOrEmpty($Input1) -or
-        [string]::IsNullOrEmpty($Input2) -or
-        [string]::IsNullOrEmpty($Input3)
-    ) {
-        Write-Output "Error: Missing required parameters"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "error-message=Missing required parameters: Input1, Input2, and Input3 must be provided."
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "result=failure"
-        return
-    }
+  $headers = @{
+    Authorization = "Bearer $Token"
+    Accept = "application/vnd.github+json"
+    "X-GitHub-Api-Version" = "2022-11-28"
+    "User-Agent" = "pwsh-action"
+  }
 
-    Write-Output "Attempting to run action"
+  $body = @{
+      event = $PrStatus
+      body = $PrMessage
+  } | ConvertTo-Json  
 
-    # Use MOCK_API if set, otherwise default to GitHub API
-    $ApiBaseUrl = if ($env:MOCK_API) { $env:MOCK_API } else { "https://api.github.com" }
-
-    //Your code goes here
+  try {
+      Write-Host "Submitting Pull Request Review..."
+      $response = Invoke-WebRequest -Uri $uri -Headers $headers -Method POST -Body $body
+      
+      if ($response.StatusCode -eq 200) {
+          "result=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Review $PrStatus submitted for Pull Request #$PrNumber in $RepoName. Status: $($response.StatusCode)"
+      } else {
+          "result=failure" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "error-message=Failed to submit Pull Request review.  Status code: $($response.StatusCode)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Failed to submit Pull Request review. Status: $($response.StatusCode)"
+      }      
+  } catch {
+    "result=failure" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+    "error-message=Pull Request review threw an exception and failed." | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+    Write-Error "Failed to submit review: $_"      
+  }
 }
