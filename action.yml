@@ -1,36 +1,51 @@
-name: GitHub Action Name
-description: A GitHub Action Descriptionto Open a specified GitHub issue using the GitHub API
-author: Lee Lott
+name: "Set Pull Request Review Status"
+description: "A GitHub Action to update the review status of a Pull Request using the GitHub REST API"
+author: Louisiana Office of Technology Services
 
 inputs:
-  input-1:
-    description: 'Description of input'
+  pr-number:
+    description: 'The number of the pull request whose review status is to be updated'
     required: true
-  input-2:
-    description: 'Description of input'
+  repo-name:
+    description: 'The name of the repository'
     required: true
-  input-3:
-    description: 'Description of input'
+  org-name:
+    description: 'The name of the GitHub organization'
+    required: true
+  pr-status:
+    description: |
+      The type of review event to submit. Allowed values:
+      - APPROVE: Approve the PR
+      - REQUEST_CHANGES: Request changes on the PR
+      - COMMENT: Leave a PR review comment
+    required: true
+  pr-message:
+    description: 'Message to include in the review.'
+    required: true
+  token:
+    description: 'GitHub token with access to pull requests'
     required: true
 
 outputs:
   result:
-    description: 'Result of the action ("success" or "failure")'
+    description: 'Result of the attempt to update the Pull Request Status ("success" or "failure")'
     value: ${{ steps.action.outputs.result }}
   error-message:
-    description: 'Error message if the action fails'
+    description: 'Error message if the Pull Request Status update fails'
     value: ${{ steps.action.outputs.error-message }}
 
 runs:
-  using: composite
+  using: "composite"
   steps:
-    - name: Action Name
+    - name: Set Review Status
       id: action
       shell: pwsh
-      run: |        
+      run: |
         . "${{ github.action_path }}/action.ps1"
-        run_action `
-          -Input1 "${{ inputs.input-1 }}" `
-          -Input2 "${{ inputs.input-2 }}" `
-          -Inpute3 "${{ inputs.input-3 }}" `
-      
+        Set-Pull-Request-Review-Status `
+          -PrNumber "${{ inputs.pr-number }}" `
+          -RepoName "${{ inputs.repo-name }}" `
+          -OrgName "${{ inputs.org-name }}" `
+          -PrStatus "${{ inputs.pr-status }}" `
+          -PrMessage "${{ inputs.pr-message}}" `
+          -Token "${{ inputs.token }}"
