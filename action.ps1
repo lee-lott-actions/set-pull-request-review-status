@@ -1,4 +1,4 @@
-function Set-Pull-Request-Review-Status {
+function Set-PullRequestReviewStatus {
   param(
     [string]$RepoName,
     [string]$OrgName,
