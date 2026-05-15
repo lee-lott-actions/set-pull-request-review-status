@@ -61,7 +61,7 @@ Describe "Set-PullRequestReviewStatus" {
     
             $output = Get-Content $env:GITHUB_OUTPUT
             $output | Should -Contain "result=failure"
-            $output | Should -Contain "error-message=Error: Failed to submit Pull Request review.  Status code: 422"
+            $output | Should -Contain "error-message=Error: Failed to submit Pull Request review. Status code: 422"
         }
     }
 
