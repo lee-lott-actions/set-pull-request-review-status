@@ -47,7 +47,7 @@ function Set-PullRequestReviewStatus {
         "result=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         Write-Host "Review $PrStatus submitted for Pull Request #$PrNumber in $RepoName. Status: $($response.StatusCode)"
       } else {
-        $errorMsg = "Error: Failed to submit Pull Request review.  Status code: $($response.StatusCode) "
+        $errorMsg = "Error: Failed to submit Pull Request review. Status code: $($response.StatusCode)"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "result=failure"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "error-message=$errorMsg"
         Write-Host $errorMsg
