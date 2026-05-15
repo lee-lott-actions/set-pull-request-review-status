@@ -175,10 +175,8 @@ Describe "Set-PullRequestReviewStatus" {
     
             $output = Get-Content $env:GITHUB_OUTPUT
             $output | Should -Contain "result=failure"
-            $output | Where-Object { $_ -match "^error-message=Error: Failed to merge pull request. Exception:" } |
+            $output | Where-Object { $_ -match "^error-message=Error: Pull Request review failed. Exception:" } |
 				Should -Not -BeNullOrEmpty
-                
-            $output | Should -Contain "error-message=Error: Pull Request review failed. Exception:"
         }
     }    
 }
