@@ -24,15 +24,14 @@ function Set-Pull-Request-Review-Status {
   }
   
   $githubApiUrl = $env:MOCK_API
-  if (-not $githubApiUrl) { $githubApiUrl = "https://api.github.com" }
-  
+  if (-not $githubApiUrl) { $githubApiUrl = "https://api.github.com" }  
   $uri = "$githubApiUrl/repos/$OrgName/$RepoName/pulls/$PrNumber/reviews"
 
   $headers = @{
     Authorization = "Bearer $Token"
     Accept = "application/vnd.github+json"
-    "Content-Type" = "application/json"
     "X-GitHub-Api-Version" = "2026-03-10"
+    "Content-Type" = "application/json"    
   }
 
   $body = @{
@@ -45,16 +44,18 @@ function Set-Pull-Request-Review-Status {
       $response = Invoke-WebRequest -Uri $uri -Headers $headers -Method POST -Body $body
       
       if ($response.StatusCode -eq 200) {
-          "result=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          Write-Host "Review $PrStatus submitted for Pull Request #$PrNumber in $RepoName. Status: $($response.StatusCode)"
+        "result=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        Write-Host "Review $PrStatus submitted for Pull Request #$PrNumber in $RepoName. Status: $($response.StatusCode)"
       } else {
-          "result=failure" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "error-message=Failed to submit Pull Request review.  Status code: $($response.StatusCode)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          Write-Host "Failed to submit Pull Request review. Status: $($response.StatusCode)"
+        $errorMsg = "Error: Failed to submit Pull Request review.  Status code: $($response.StatusCode) "
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "result=failure"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "error-message=$errorMsg"
+        Write-Host $errorMsg
       }      
-  } catch {
-    "result=failure" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-    "error-message=Pull Request review threw an exception and failed." | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-    Write-Error "Failed to submit review: $_"      
+  } catch {    
+    $errorMsg = "Error: Pull Request review failed. Exception: $($_.Exception.Message)"
+    Add-Content -Path $env:GITHUB_OUTPUT -Value "result=failure"
+    Add-Content -Path $env:GITHUB_OUTPUT -Value "error-message=$errorMsg"
+    Write-Host $errorMsg
   }
 }
