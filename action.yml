@@ -42,7 +42,7 @@ runs:
       shell: pwsh
       run: |
         . "${{ github.action_path }}/action.ps1"
-        Set-Pull-Request-Review-Status `
+        Set-PullRequestReviewStatus `
           -PrNumber "${{ inputs.pr-number }}" `
           -RepoName "${{ inputs.repo-name }}" `
           -OrgName "${{ inputs.org-name }}" `
