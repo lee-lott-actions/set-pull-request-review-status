@@ -41,7 +41,7 @@ function Set-PullRequestReviewStatus {
 
   try {
       Write-Host "Submitting Pull Request Review..."
-      $response = Invoke-WebRequest -Uri $uri -Headers $headers -Method POST -Body $body
+      $response = Invoke-WebRequest -Uri $uri -Headers $headers -Method POST -Body $body -SkipHttpErrorCheck
       
       if ($response.StatusCode -eq 200) {
         "result=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
