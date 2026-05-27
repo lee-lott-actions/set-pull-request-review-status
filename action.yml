@@ -1,6 +1,6 @@
 name: "Set Pull Request Review Status"
 description: "A GitHub Action to update the review status of a Pull Request using the GitHub REST API"
-author: Louisiana Office of Technology Services
+author: Lee Lott
 
 inputs:
   pr-number:
